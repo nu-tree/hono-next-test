@@ -6,34 +6,31 @@ import { createTodoSchema } from '../schemas/todo-schema';
 let todos: Array<{ id: number; title: string; completed: boolean }> = [];
 let nextId = 1;
 
-const todosRoute = new Hono();
+const todosRoute = new Hono()
+  .get('/', (c) => {
+    return c.json({ todos });
+  })
+  .get('/:id', (c) => {
+    const id = Number(c.req.param('id'));
+    const todo = todos.find((t) => t.id === id);
 
-todosRoute.get('/', (c) => {
-  return c.json({ todos });
-});
+    if (!todo) {
+      return c.json({ error: 'Todo not found' }, 404);
+    }
 
-todosRoute.get('/:id', (c) => {
-  const id = Number(c.req.param('id'));
-  const todo = todos.find((t) => t.id === id);
+    return c.json({ todo });
+  })
+  .post('/', zValidator('json', createTodoSchema), async (c) => {
+    const { title } = await c.req.json();
 
-  if (!todo) {
-    return c.json({ error: 'Todo not found' }, 404);
-  }
+    const todo = {
+      id: nextId++,
+      title,
+      completed: false,
+    };
 
-  return c.json({ todo });
-});
-
-todosRoute.post('/', zValidator('json', createTodoSchema), async (c) => {
-  const { title } = await c.req.json();
-
-  const todo = {
-    id: nextId++,
-    title,
-    completed: false,
-  };
-
-  todos.push(todo);
-  return c.json({ todo }, 201);
-});
+    todos.push(todo);
+    return c.json({ todo }, 201);
+  });
 
 export default todosRoute;
