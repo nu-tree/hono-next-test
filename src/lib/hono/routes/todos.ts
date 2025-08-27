@@ -1,4 +1,6 @@
+import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { createTodoSchema } from '../schemas/todo-schema';
 
 // 메모리 저장소 (나중에 전역으로 이동 가능)
 let todos: Array<{ id: number; title: string; completed: boolean }> = [];
@@ -21,7 +23,7 @@ todosRoute.get('/:id', (c) => {
   return c.json({ todo });
 });
 
-todosRoute.post('/', async (c) => {
+todosRoute.post('/', zValidator('json', createTodoSchema), async (c) => {
   const { title } = await c.req.json();
 
   const todo = {
