@@ -4,12 +4,12 @@ import { handle } from 'hono/vercel';
 import todosRoute from '@/lib/hono/routes/todos';
 import { logger } from '@/lib/hono/middleware/logger';
 
-const app = new Hono().basePath('/api');
-app.use('*', logger);
+const app = new Hono().basePath('/');
 
-const router = app.route('/todos', todosRoute);
+app.use('*', logger);
+const routes = app.route('/todos', todosRoute);
 
 const handler = handle(app);
 export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH };
 
-export type AppType = typeof router;
+export type AppType = typeof routes;
