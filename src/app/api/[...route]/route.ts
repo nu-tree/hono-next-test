@@ -1,22 +1,16 @@
-import { zValidator } from '@hono/zod-validator';
+import todosRoute from '@/lib/hono/routes/todos';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
-import z from 'zod';
 
 const app = new Hono().basePath('/api');
 
-const route = app.get('/hello', zValidator('query', z.object({ name: z.string() })), (c) => {
-  const { name } = c.req.valid('query');
-  return c.json({
-    message: `Hello ${name}`,
-  });
+app.get('/hello', (c) => {
+  return c.json({ message: 'Hello, World!' });
 });
 
-export const GET = handle(app);
-export const POST = handle(app);
-export const PUT = handle(app);
-export const DELETE = handle(app);
-export const PATCH = handle(app);
-export const OPTIONS = handle(app);
+app.route('/todos', todosRoute);
 
-export type AppType = typeof route;
+const handler = handle(app);
+export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
+
+export type AppType = typeof app;
