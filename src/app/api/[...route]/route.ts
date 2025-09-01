@@ -4,7 +4,7 @@ import { handle } from 'hono/vercel';
 import todosRoute from '@/lib/hono/routes/todos';
 import { logger } from '@/lib/hono/middleware/logger';
 
-const app = new Hono().basePath('/');
+const app = new Hono().basePath('/api');
 
 app.use('*', logger);
 const routes = app.route('/todos', todosRoute);
