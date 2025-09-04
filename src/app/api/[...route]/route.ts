@@ -4,18 +4,30 @@ import { handle } from 'hono/vercel';
 import todosRoute from '@/lib/hono/routes/todos';
 import { logger } from '@/lib/hono/middleware/logger';
 import { rateLimiter } from 'hono-rate-limiter';
+import { cache, clearAllCache } from '@/lib/hono/middleware/cache';
 
 const app = new Hono().basePath('/api');
-// Apply the rate limiting middleware to all requests.
+
 app.use(
   rateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 10, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-    standardHeaders: 'draft-6', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: 'draft-6',
     keyGenerator: (c) => c.req.header('x-forwarded-for') || 'unknown', // IP별,
   })
 );
+
 app.use('*', logger);
+
+// 전역 캐시는 제거하고 각 라우트에서 개별적으로 설정
+// app.use('*', cache({ ttl: 30 }));
+
+// 캐시 클리어 엔드포인트 (개발/테스트용)
+app.delete('/cache', async (c) => {
+  await clearAllCache();
+  return c.json({ message: 'All cache cleared' });
+});
+
 const routes = app.route('/todos', todosRoute);
 
 const handler = handle(app);

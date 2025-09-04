@@ -5,4 +5,5 @@ export const logger = async (c: Context, next: Next) => {
   await next();
   const ms = Date.now() - start;
   console.log(`${c.req.method} ${c.req.url} - ${ms}ms`);
+  console.log(12312321332131231231213223312132);
 };

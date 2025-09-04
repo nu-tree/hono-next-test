@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { createTodoSchema } from '../schemas/todo-schema';
 import { createFactory } from 'hono/factory';
+import { cache, invalidateTags } from '../middleware/cache';
 
 // 메모리 저장소 (나중에 전역으로 이동 가능)
 let todos: Array<{ id: number; title: string; completed: boolean }> = [];
@@ -39,8 +40,10 @@ const createTodo = factory.createHandlers(zValidator('json', createTodoSchema), 
 
 // 라우트 구성
 const todosRoute = new Hono()
-  .get('/', ...getTodos)
-  .get('/:id', ...getTodo)
-  .post('/', ...createTodo);
+  // GET 요청에 태그 기반 캐시 적용
+  .get('/', cache({ ttl: 300, tags: ['todos'] }), ...getTodos)
+  .get('/:id', cache({ ttl: 300, tags: ['todos', 'todo-detail'] }), ...getTodo)
+  // POST 요청 시 todos 관련 캐시 무효화
+  .post('/', invalidateTags(['todos', 'todos']), ...createTodo);
 
 export default todosRoute;
